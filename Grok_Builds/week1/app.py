@@ -18,15 +18,14 @@ How to Run:
 
 # Import standard libraries
 import os  # For accessing environment variables and file paths
-# Import third-party libraries
-import streamlit as st  # For building the web interface
+# Import third-party libraries (but not Streamlit yet)
 from dotenv import load_dotenv  # For loading environment variables
 # Import local modules
 from agent import SimpleAgent  # The AI agent class
 from prompts import HEALTHCARE_QUALIFYING_QUESTIONS  # The prompt template
 
 # Debug print to confirm the file version
-print("Loading app.py - Version: 2025-05-11 (e7c2a9f0-5b32-4e6a-9c7d-8f9a3b6c2d18)")
+print("Loading app.py - Version: 2025-05-11 (a5d7f9e1-3b27-4e9c-b2a8-d9f0e5c3a4f7)")
 
 # Load environment variables from a .env file in the root directory (Grok_AI_Agents)
 # Since app.py is in Grok_Builds/week1, we need to go up three levels:
@@ -50,6 +49,9 @@ def run_web_interface():
     This function sets up the UI, collects user input, and displays the generated questions.
     It uses the SimpleAgent and prompt template for modularity.
     """
+    # Import Streamlit here to delay its initialization
+    import streamlit as st
+
     # Debug print to confirm we're starting the Streamlit commands
     print("Starting run_web_interface() - First Streamlit command should be set_page_config")
 
