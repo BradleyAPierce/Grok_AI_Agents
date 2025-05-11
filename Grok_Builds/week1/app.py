@@ -34,11 +34,11 @@ parent_dir = os.path.dirname(script_dir)  # Up to Grok_Builds
 root_dir = os.path.dirname(parent_dir)  # Up to Grok_AI_Agents
 dotenv_path = os.path.join(root_dir, '.env')
 
-# Load the .env file (but don't use Streamlit commands yet)
+# Load the .env file (no Streamlit commands used yet)
 load_dotenv(dotenv_path)
 
-# Get the OpenAI API key from environment variables
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# Initialize OPENAI_API_KEY as None; we'll set it later
+OPENAI_API_KEY = None
 
 def run_web_interface():
     """
@@ -55,16 +55,18 @@ def run_web_interface():
     )
     
     # Now that set_page_config is called, we can use other Streamlit commands
-    # Check if the .env file exists (we loaded it earlier, but let's confirm the key)
+    # Check if the .env file exists
     if not os.path.exists(dotenv_path):
         st.error(f"Could not find .env file at {dotenv_path}.")
         st.error("Please create a .env file in the root directory (Grok_AI_Agents) with the following content:")
         st.code("OPENAI_API_KEY=your-key-here")
         st.stop()
 
-    # If the API key isn't in the environment variables, try Streamlit secrets
-    # This is useful for Streamlit Cloud
+    # Get the OpenAI API key from environment variables
     global OPENAI_API_KEY  # Use the global variable
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+    # If the API key isn't in the environment variables, try Streamlit secrets
     if not OPENAI_API_KEY:
         try:
             OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
