@@ -17,15 +17,16 @@ How to Run:
 """
 # Import standard libraries
 import sys  # For accessing command-line arguments
-import os  # For accessing environment variables
+import os  # For accessing environment variables and file paths
 # Import local modules
 from agent import SimpleAgent  # The AI agent class
 from prompts import HEALTHCARE_QUALIFYING_QUESTIONS  # The prompt template
 from dotenv import load_dotenv  # For loading the .env file
 
-# Load the .env file from the root directory
-# We need to specify the path since cli.py is in a subdirectory (week1)
-dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+# Load the .env file from the root directory (Grok_AI_Agents)
+# Since cli.py is in Grok_Builds/week1, we need to go up three levels:
+# week1 -> Grok_Builds -> Grok_AI_Agents
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
 load_dotenv(dotenv_path)
 
 # Get the OpenAI API key
