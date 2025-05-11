@@ -12,7 +12,7 @@ Date Created: May 10, 2025
 How to Run:
 -----------
 1. Install requirements: `pip install openai streamlit python-dotenv`
-2. Set your OpenAI API key in a `.env` file or Streamlit secrets.
+2. Set your OpenAI API key in a `.env` file (for local use) or Streamlit secrets (for Streamlit Cloud).
 3. Run the app: `streamlit run app.py`
 """
 
@@ -29,15 +29,31 @@ from prompts import HEALTHCARE_QUALIFYING_QUESTIONS  # The prompt template
 # Since app.py is in Grok_Builds/week1, we need to go up three levels:
 # week1 -> Grok_Builds -> Grok_AI_Agents
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+
+# Check if the .env file exists before trying to load it
+if not os.path.exists(dotenv_path):
+    st.error(f"Could not find .env file at {dotenv_path}. Please create it with OPENAI_API_KEY.")
+    st.stop()
+
+# Load the .env file
 load_dotenv(dotenv_path)
 
-# Get the OpenAI API key from environment variables or Streamlit secrets
-# Streamlit secrets are used for deployment on Streamlit Cloud
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
+# Get the OpenAI API key from environment variables
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Check if the API key is available; if not, show an error and stop the app
+# If the API key isn't in the environment variables, try Streamlit secrets
+# This is useful for Streamlit Cloud, where secrets.toml or secrets are set in the app settings
 if not OPENAI_API_KEY:
-    st.error("OpenAI API key not found. Please set it in a .env file or Streamlit secrets.")
+    try:
+        OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
+    except Exception as e:
+        st.error(f"Failed to load OPENAI_API_KEY from environment variables or secrets: {str(e)}")
+        st.error("Please set OPENAI_API_KEY in a .env file (locally) or in Streamlit Cloud secrets.")
+        st.stop()
+
+# Final check to ensure we have an API key
+if not OPENAI_API_KEY:
+    st.error("OPENAI_API_KEY not found. Please set it in a .env file or Streamlit secrets.")
     st.stop()
 
 def run_web_interface():
