@@ -85,42 +85,45 @@ def run_web_interface():
                     # Create an instance of the SimpleAgent with the API key
                     agent = SimpleAgent(api_key=OPENAI_API_KEY)
                     
-                    # Initialize variables for retry logic
-                    questions = []
-                    attempts = 0
-                    max_attempts = 3  # Maximum number of retries
+                    # Format the prompt with the user’s input and number of questions
+                    # This replaces {input} and {num} in the prompt template
+                    prompt = HEALTHCARE_QUALIFYING_QUESTIONS.format(
+                        input=user_goal,
+                        num=num_questions
+                    )
                     
-                    # Retry until we get exactly num_questions or reach max_attempts
-                    while len(questions) != num_questions and attempts < max_attempts:
-                        attempts += 1
-                        # Format the prompt with the user’s input and number of questions
-                        prompt = HEALTHCARE_QUALIFYING_QUESTIONS.format(
-                            input=user_goal,
-                            num=num_questions
-                        )
-                        
-                        # Generate the questions using the agent
-                        questions = agent.generate(prompt)
-                        
-                        # If we didn't get the right number, retry
-                        if len(questions) != num_questions:
-                            st.warning(f"Attempt {attempts}: Generated {len(questions)} questions instead of {num_questions}. Retrying...")
+                    # Use the agent to generate questions
+                    # The agent returns a list of dictionaries (parsed JSON)
+                    questions = agent.generate(prompt)
                     
-                    # Check if we succeeded
+                    # Check if the correct number of questions was generated
                     if len(questions) != num_questions:
-                        st.error(f"Could not generate exactly {num_questions} questions after {max_attempts} attempts. Generated {len(questions)} questions.")
-                    else:
+                        st.warning(f"Requested {num_questions} questions, but only {len(questions)} were generated. Try again or adjust the prompt.")
+                    
+                    # Check if questions were generated successfully
+                    if questions:
                         # Display a success message with the number of questions
                         st.success(f"Here are your {len(questions)} qualifying questions:")
                         
-                        # Loop through the questions and display each one with labels
+                        # Loop through the questions and display each one
                         for i, item in enumerate(questions, 1):
+                            # Use markdown for formatted text (bold question, italic explanation)
                             st.markdown(f"**Question {i}:** {item['question']}")
                             st.markdown(f"*Explanation:* {item['explanation']}")
                             st.markdown("---")  # Add a separator between questions
+                    else:
+                        # If no questions were generated, show an error
+                        st.error("No questions were generated. Please try again.")
                 
                 except Exception as e:
                     # If an error occurs (e.g., API failure), show an error
                     st.error(f"Error: {str(e)}")
 
-if __name__ == "__
+if __name__ == "__main__":
+    """
+    Entry point of the script.
+    
+    This block runs when the script is executed directly (e.g., `python app.py`).
+    It starts the Streamlit web interface.
+    """
+    run_web_interface()
