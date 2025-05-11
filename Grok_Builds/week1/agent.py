@@ -4,7 +4,7 @@ agent.py
 Defines a SimpleAgent class for interacting with OpenAI's API.
 
 This class provides a generic way to send prompts to an LLM and parse JSON responses.
-It's designed to be reusable for any task by accepting a prompt and model configuration.
+It's designed to be simple and reusable for various tasks.
 
 Author: Bradley Pierce
 Date Created: May 10, 2025
@@ -50,18 +50,18 @@ class SimpleAgent:
         This method assumes the LLM returns JSON (e.g., [{"question": "...", "explanation": "..."}]).
         """
         try:
-            # Send the prompt to OpenAI's ChatCompletion endpoint
-            # The messages list defines the conversation (here, just one user message)
-            response = openai.ChatCompletion.create(
-                model=self.model,  # Use the specified model
-                messages=[  # Send the prompt as a user message
+            # Send the prompt to OpenAI's API using the new syntax for chat completions
+            # We use openai.chat.completions.create() instead of the old openai.ChatCompletion.create()
+            response = openai.chat.completions.create(
+                model=self.model,  # The model to use (e.g., gpt-3.5-turbo)
+                messages=[  # The conversation history (just one user message here)
                     {"role": "user", "content": prompt}
                 ],
                 temperature=temperature  # Control output randomness
             )
             
             # Extract the response text from the first choice
-            # The response is a string containing JSON
+            # In the new API, the response is in response.choices[0].message.content
             response_text = response.choices[0].message.content
             
             # Parse the JSON string into a Python list of dictionaries
