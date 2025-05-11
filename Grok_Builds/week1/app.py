@@ -47,6 +47,9 @@ def run_web_interface():
     This function sets up the UI, collects user input, and displays the generated questions.
     It uses the SimpleAgent and prompt template for modularity.
     """
+    # Debug print to confirm we're starting the Streamlit commands
+    print("Starting run_web_interface() - First Streamlit command should be set_page_config")
+
     # Set the page config as the FIRST Streamlit command
     st.set_page_config(
         page_title="Healthcare Sales Qualifying Questions Generator",
