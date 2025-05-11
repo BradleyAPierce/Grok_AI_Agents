@@ -53,28 +53,44 @@ def run_cli():
     # Get the client situation from the command-line argument
     user_goal = sys.argv[1]
     
-    # Set the number of questions (hardcoded for simplicity, but you can modify this)
+    # Set the desired number of questions
     num_questions = 5
     
     try:
         # Create an instance of the SimpleAgent with the API key
         agent = SimpleAgent(api_key=OPENAI_API_KEY)
         
-        # Format the prompt with the user’s input and number of questions
-        prompt = HEALTHCARE_QUALIFYING_QUESTIONS.format(
-            input=user_goal,
-            num=num_questions
-        )
+        # Initialize variables for retry logic
+        questions = []
+        attempts = 0
+        max_attempts = 3  # Maximum number of retries
         
-        # Generate the questions using the agent
-        questions = agent.generate(prompt)
+        # Retry until we get exactly num_questions or reach max_attempts
+        while len(questions) != num_questions and attempts < max_attempts:
+            attempts += 1
+            # Format the prompt with the user’s input and number of questions
+            prompt = HEALTHCARE_QUALIFYING_QUESTIONS.format(
+                input=user_goal,
+                num=num_questions
+            )
+            
+            # Generate the questions using the agent
+            questions = agent.generate(prompt)
+            
+            # If we didn't get the right number, print a message and retry
+            if len(questions) != num_questions:
+                print(f"Attempt {attempts}: Generated {len(questions)} questions instead of {num_questions}. Retrying...")
         
-        # Print the generated questions
-        print(f"\nGenerated {len(questions)} Qualifying Questions for: {user_goal}\n")
-        for i, item in enumerate(questions, 1):
-            print(f"Question {i}: {item['question']}")
-            print(f"Explanation: {item['explanation']}")
-            print("-" * 80)
+        # Check if we succeeded
+        if len(questions) != num_questions:
+            print(f"Error: Could not generate exactly {num_questions} questions after {max_attempts} attempts. Generated {len(questions)} questions.")
+        else:
+            # Print the generated questions with labels
+            print(f"\nGenerated {len(questions)} Qualifying Questions for: {user_goal}\n")
+            for i, item in enumerate(questions, 1):
+                print(f"Question {i}: {item['question']}")
+                print(f"Explanation: {item['explanation']}")
+                print("-" * 80)
     
     except Exception as e:
         print(f"Error: {str(e)}")

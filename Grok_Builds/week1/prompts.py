@@ -13,7 +13,7 @@ Date Created: May 10, 2025
 
 # Define a prompt template for generating healthcare sales qualifying questions
 # The template uses placeholders for the client situation and number of questions
-# It instructs the LLM to return JSON for easy parsing
+# It instructs the LLM to return JSON with question content (labels will be added by the code)
 HEALTHCARE_QUALIFYING_QUESTIONS = """
 You are a healthcare sales expert. Based on this client situation: {input}
 
@@ -22,8 +22,8 @@ For each question, provide an explanation of why it's effective.
 
 Return the response in JSON format, like this:
 [
-    {{"question": "Question 1", "explanation": "Explanation 1"}},
-    {{"question": "Question 2", "explanation": "Explanation 2"}},
+    {{"question": "What specific challenges are you facing?", "explanation": "This helps identify core issues."}},
+    {{"question": "How are you currently addressing this?", "explanation": "This reveals their current approach."}},
     ...
 ]
 """
@@ -37,7 +37,7 @@ Generate exactly {num} questions to diagnose the customer's problem.
 
 Return the response in JSON format, like this:
 [
-    {{"question": "Question 1", "explanation": "Explanation 1"}},
+    {{"question": "Can you describe the issue in detail?", "explanation": "This helps gather more context."}},
     ...
 ]
 """
