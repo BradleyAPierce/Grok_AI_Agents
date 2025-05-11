@@ -26,7 +26,20 @@ from dotenv import load_dotenv  # For loading the .env file
 # Load the .env file from the root directory (Grok_AI_Agents)
 # Since cli.py is in Grok_Builds/week1, we need to go up three levels:
 # week1 -> Grok_Builds -> Grok_AI_Agents
-dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+# Use os.path.abspath to ensure the path is absolute
+script_dir = os.path.dirname(os.path.abspath(__file__))  # Absolute path to week1
+parent_dir = os.path.dirname(script_dir)  # Up to Grok_Builds
+root_dir = os.path.dirname(parent_dir)  # Up to Grok_AI_Agents
+dotenv_path = os.path.join(root_dir, '.env')
+
+# Check if the .env file exists before trying to load it
+if not os.path.exists(dotenv_path):
+    print(f"Error: Could not find .env file at {dotenv_path}.")
+    print("Please create a .env file in the root directory (Grok_AI_Agents) with the following content:")
+    print("OPENAI_API_KEY=your-key-here")
+    sys.exit(1)
+
+# Load the .env file
 load_dotenv(dotenv_path)
 
 # Get the OpenAI API key
@@ -53,44 +66,34 @@ def run_cli():
     # Get the client situation from the command-line argument
     user_goal = sys.argv[1]
     
-    # Set the desired number of questions
+    # Set the number of questions to generate
     num_questions = 5
     
     try:
         # Create an instance of the SimpleAgent with the API key
         agent = SimpleAgent(api_key=OPENAI_API_KEY)
         
-        # Initialize variables for retry logic
-        questions = []
-        attempts = 0
-        max_attempts = 3  # Maximum number of retries
+        # Format the prompt with the user’s input and number of questions
+        prompt = HEALTHCARE_QUALIFYING_QUESTIONS.format(
+            input=user_goal,
+            num=num_questions
+        )
         
-        # Retry until we get exactly num_questions or reach max_attempts
-        while len(questions) != num_questions and attempts < max_attempts:
-            attempts += 1
-            # Format the prompt with the user’s input and number of questions
-            prompt = HEALTHCARE_QUALIFYING_QUESTIONS.format(
-                input=user_goal,
-                num=num_questions
-            )
-            
-            # Generate the questions using the agent
-            questions = agent.generate(prompt)
-            
-            # If we didn't get the right number, print a message and retry
-            if len(questions) != num_questions:
-                print(f"Attempt {attempts}: Generated {len(questions)} questions instead of {num_questions}. Retrying...")
+        # Generate the questions using the agent
+        questions = agent.generate(prompt)
         
-        # Check if we succeeded
+        # Check if the correct number of questions was generated
         if len(questions) != num_questions:
-            print(f"Error: Could not generate exactly {num_questions} questions after {max_attempts} attempts. Generated {len(questions)} questions.")
-        else:
-            # Print the generated questions with labels
-            print(f"\nGenerated {len(questions)} Qualifying Questions for: {user_goal}\n")
-            for i, item in enumerate(questions, 1):
-                print(f"Question {i}: {item['question']}")
-                print(f"Explanation: {item['explanation']}")
-                print("-" * 80)
+            print(f"Warning: Requested {num_questions} questions, but only {len(questions)} were generated.")
+            print("The LLM may not have followed the prompt exactly. You can try running the command again.")
+            # Optionally, you could add a retry mechanism here, but for simplicity, we'll just proceed
+        
+        # Print the generated questions
+        print(f"\nGenerated {len(questions)} Qualifying Questions for: {user_goal}\n")
+        for i, item in enumerate(questions, 1):
+            print(f"Question {i}: {item['question']}")
+            print(f"Explanation: {item['explanation']}")
+            print("-" * 80)
     
     except Exception as e:
         print(f"Error: {str(e)}")

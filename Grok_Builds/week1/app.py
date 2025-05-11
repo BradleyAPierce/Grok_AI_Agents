@@ -28,33 +28,17 @@ from prompts import HEALTHCARE_QUALIFYING_QUESTIONS  # The prompt template
 # Load environment variables from a .env file in the root directory (Grok_AI_Agents)
 # Since app.py is in Grok_Builds/week1, we need to go up three levels:
 # week1 -> Grok_Builds -> Grok_AI_Agents
-dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+# Use os.path.abspath to ensure the path is absolute
+script_dir = os.path.dirname(os.path.abspath(__file__))  # Absolute path to week1
+parent_dir = os.path.dirname(script_dir)  # Up to Grok_Builds
+root_dir = os.path.dirname(parent_dir)  # Up to Grok_AI_Agents
+dotenv_path = os.path.join(root_dir, '.env')
 
-# Check if the .env file exists before trying to load it
-if not os.path.exists(dotenv_path):
-    st.error(f"Could not find .env file at {dotenv_path}. Please create it with OPENAI_API_KEY.")
-    st.stop()
-
-# Load the .env file
+# Load the .env file (but don't use Streamlit commands yet)
 load_dotenv(dotenv_path)
 
 # Get the OpenAI API key from environment variables
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-# If the API key isn't in the environment variables, try Streamlit secrets
-# This is useful for Streamlit Cloud, where secrets.toml or secrets are set in the app settings
-if not OPENAI_API_KEY:
-    try:
-        OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
-    except Exception as e:
-        st.error(f"Failed to load OPENAI_API_KEY from environment variables or secrets: {str(e)}")
-        st.error("Please set OPENAI_API_KEY in a .env file (locally) or in Streamlit Cloud secrets.")
-        st.stop()
-
-# Final check to ensure we have an API key
-if not OPENAI_API_KEY:
-    st.error("OPENAI_API_KEY not found. Please set it in a .env file or Streamlit secrets.")
-    st.stop()
 
 def run_web_interface():
     """
@@ -63,19 +47,42 @@ def run_web_interface():
     This function sets up the UI, collects user input, and displays the generated questions.
     It uses the SimpleAgent and prompt template for modularity.
     """
-    # Configure the Streamlit page (title, icon, layout)
+    # Set the page config as the FIRST Streamlit command
     st.set_page_config(
         page_title="Healthcare Sales Qualifying Questions Generator",
         page_icon="🏥",  # Hospital emoji for the page icon
         layout="centered"  # Center the content for a clean look
     )
     
+    # Now that set_page_config is called, we can use other Streamlit commands
+    # Check if the .env file exists (we loaded it earlier, but let's confirm the key)
+    if not os.path.exists(dotenv_path):
+        st.error(f"Could not find .env file at {dotenv_path}.")
+        st.error("Please create a .env file in the root directory (Grok_AI_Agents) with the following content:")
+        st.code("OPENAI_API_KEY=your-key-here")
+        st.stop()
+
+    # If the API key isn't in the environment variables, try Streamlit secrets
+    # This is useful for Streamlit Cloud
+    global OPENAI_API_KEY  # Use the global variable
+    if not OPENAI_API_KEY:
+        try:
+            OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
+        except Exception as e:
+            st.error(f"Failed to load OPENAI_API_KEY from environment variables or secrets: {str(e)}")
+            st.error("Please set OPENAI_API_KEY in a .env file (locally) or in Streamlit Cloud secrets.")
+            st.stop()
+
+    # Final check to ensure we have an API key
+    if not OPENAI_API_KEY:
+        st.error("OPENAI_API_KEY not found. Please set it in a .env file or Streamlit secrets.")
+        st.stop()
+
     # Add a title and description to the UI
     st.title("Healthcare Sales Qualifying Questions Generator")
     st.write("Generate qualifying questions based on a client's situation or pain point.")
     
     # Create a text area for the user to enter the client situation
-    # The placeholder provides an example to guide the user
     user_goal = st.text_area(
         "Enter the client's situation or pain point",
         placeholder="e.g., Client is struggling with patient data management and compliance"
@@ -102,14 +109,12 @@ def run_web_interface():
                     agent = SimpleAgent(api_key=OPENAI_API_KEY)
                     
                     # Format the prompt with the user’s input and number of questions
-                    # This replaces {input} and {num} in the prompt template
                     prompt = HEALTHCARE_QUALIFYING_QUESTIONS.format(
                         input=user_goal,
                         num=num_questions
                     )
                     
                     # Use the agent to generate questions
-                    # The agent returns a list of dictionaries (parsed JSON)
                     questions = agent.generate(prompt)
                     
                     # Check if the correct number of questions was generated

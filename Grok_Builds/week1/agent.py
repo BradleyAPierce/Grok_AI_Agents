@@ -13,6 +13,7 @@ Date Created: May 10, 2025
 # Import required libraries
 import openai  # For interacting with OpenAI's API
 import json  # For parsing JSON responses from the LLM
+import re  # For cleaning JSON strings
 
 class SimpleAgent:
     """
@@ -51,7 +52,6 @@ class SimpleAgent:
         """
         try:
             # Send the prompt to OpenAI's API using the new syntax for chat completions
-            # We use openai.chat.completions.create() instead of the old openai.ChatCompletion.create()
             response = openai.chat.completions.create(
                 model=self.model,  # The model to use (e.g., gpt-3.5-turbo)
                 messages=[  # The conversation history (just one user message here)
@@ -61,8 +61,11 @@ class SimpleAgent:
             )
             
             # Extract the response text from the first choice
-            # In the new API, the response is in response.choices[0].message.content
             response_text = response.choices[0].message.content
+            
+            # Clean the JSON string to fix common issues like trailing commas
+            # Remove trailing commas in arrays (e.g., [item1, item2,] -> [item1, item2])
+            response_text = re.sub(r',\s*]', ']', response_text)
             
             # Parse the JSON string into a Python list of dictionaries
             result = json.loads(response_text)
@@ -70,6 +73,9 @@ class SimpleAgent:
             # Return the parsed result
             return result
         
+        except json.JSONDecodeError as e:
+            # If JSON parsing fails, raise an error with the response text for debugging
+            raise Exception(f"Failed to parse LLM response as JSON: {str(e)}\nResponse text: {response_text}")
         except Exception as e:
-            # If an error occurs (e.g., API failure, invalid JSON), raise an exception
+            # If any other error occurs (e.g., API failure), raise it
             raise Exception(f"Error generating response: {str(e)}")
