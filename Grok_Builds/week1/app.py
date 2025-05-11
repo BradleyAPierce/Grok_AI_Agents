@@ -25,7 +25,7 @@ from agent import SimpleAgent  # The AI agent class
 from prompts import HEALTHCARE_QUALIFYING_QUESTIONS  # The prompt template
 
 # Debug print to confirm the file version
-print("Loading app.py - Version: 2025-05-11 (a5d7f9e1-3b27-4e9c-b2a8-d9f0e5c3a4f7)")
+print("Loading app.py - Version: 2025-05-11 (e6b3c8a7-9d41-4e2f-a5d9-3f0e7c1b4d82)")
 
 # Load environment variables from a .env file in the root directory (Grok_AI_Agents)
 # Since app.py is in Grok_Builds/week1, we need to go up three levels:
@@ -42,6 +42,22 @@ load_dotenv(dotenv_path)
 # Initialize OPENAI_API_KEY as None; we'll set it later
 OPENAI_API_KEY = None
 
+# Import Streamlit here to delay its initialization
+import streamlit as st
+
+# Debug print before the first Streamlit command
+print("First Streamlit command: st.set_page_config()")
+
+# Set the page config as the FIRST Streamlit command at the top level
+st.set_page_config(
+    page_title="Healthcare Sales Qualifying Questions Generator",
+    page_icon="🏥",  # Hospital emoji for the page icon
+    layout="centered"  # Center the content for a clean look
+)
+
+# Debug print to confirm set_page_config was called
+print("st.set_page_config() called successfully")
+
 def run_web_interface():
     """
     Run the Streamlit web interface for the qualifying questions generator.
@@ -49,23 +65,7 @@ def run_web_interface():
     This function sets up the UI, collects user input, and displays the generated questions.
     It uses the SimpleAgent and prompt template for modularity.
     """
-    # Import Streamlit here to delay its initialization
-    import streamlit as st
-
-    # Debug print to confirm we're starting the Streamlit commands
-    print("Starting run_web_interface() - First Streamlit command should be set_page_config")
-
-    # Set the page config as the FIRST Streamlit command
-    st.set_page_config(
-        page_title="Healthcare Sales Qualifying Questions Generator",
-        page_icon="🏥",  # Hospital emoji for the page icon
-        layout="centered"  # Center the content for a clean look
-    )
-    
-    # Debug print to confirm set_page_config was called
-    print("st.set_page_config() called successfully")
-
-    # Now that set_page_config is called, we can use other Streamlit commands
+    # Now that set_page_config is called at the top level, we can use other Streamlit commands
     # Check if the .env file exists
     if not os.path.exists(dotenv_path):
         st.error(f"Could not find .env file at {dotenv_path}.")
@@ -96,13 +96,13 @@ def run_web_interface():
     # Add a title and description to the UI
     st.title("Healthcare Sales Qualifying Questions Generator")
     st.write("Generate qualifying questions based on a client's situation or pain point.")
-    
+
     # Create a text area for the user to enter the client situation
     user_goal = st.text_area(
         "Enter the client's situation or pain point",
         placeholder="e.g., Client is struggling with patient data management and compliance"
     )
-    
+
     # Add a number input for the user to specify the number of questions
     num_questions = st.number_input(
         "Number of questions to generate",
@@ -110,7 +110,7 @@ def run_web_interface():
         max_value=20,
         value=10  # Default to 10 questions
     )
-    
+
     # Add a button to trigger question generation
     if st.button("Generate Questions"):
         # Check if the user provided input; if not, show a warning
