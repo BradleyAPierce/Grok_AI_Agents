@@ -25,6 +25,9 @@ from dotenv import load_dotenv  # For loading environment variables
 from agent import SimpleAgent  # The AI agent class
 from prompts import HEALTHCARE_QUALIFYING_QUESTIONS  # The prompt template
 
+# Debug print to confirm the file version
+print("Loading app.py - Version: 2025-05-11 (e7c2a9f0-5b32-4e6a-9c7d-8f9a3b6c2d18)")
+
 # Load environment variables from a .env file in the root directory (Grok_AI_Agents)
 # Since app.py is in Grok_Builds/week1, we need to go up three levels:
 # week1 -> Grok_Builds -> Grok_AI_Agents
@@ -57,6 +60,9 @@ def run_web_interface():
         layout="centered"  # Center the content for a clean look
     )
     
+    # Debug print to confirm set_page_config was called
+    print("st.set_page_config() called successfully")
+
     # Now that set_page_config is called, we can use other Streamlit commands
     # Check if the .env file exists
     if not os.path.exists(dotenv_path):
@@ -72,7 +78,9 @@ def run_web_interface():
     # If the API key isn't in the environment variables, try Streamlit secrets
     if not OPENAI_API_KEY:
         try:
+            print("Attempting to load OPENAI_API_KEY from st.secrets")
             OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
+            print("Successfully loaded OPENAI_API_KEY from st.secrets")
         except Exception as e:
             st.error(f"Failed to load OPENAI_API_KEY from environment variables or secrets: {str(e)}")
             st.error("Please set OPENAI_API_KEY in a .env file (locally) or in Streamlit Cloud secrets.")
@@ -152,4 +160,5 @@ if __name__ == "__main__":
     This block runs when the script is executed directly (e.g., `python app.py`).
     It starts the Streamlit web interface.
     """
+    print("Calling run_web_interface() from __main__")
     run_web_interface()
